@@ -1,0 +1,19 @@
+<launch>
+
+  <!-- Get arguments -->
+  <arg name="model_path" default="$(find grounding_sam_ros)weights/groundingdino_swint_ogc.pth" doc="Detection Model Path [default: weights/groundingdino_swint_ogc.pth]" />
+  <arg name="sam_checkpoint" default="$(find grounding_sam_ros)weights/sam_vit_l_0b3195.pth" doc="Segmentation Model Path [default: weights/sam_vit_l_0b3195.pth]" />
+  <arg name="config" default="$(find grounding_sam_ros)src/groundingdino/config/GroundingDINO_SwinT_OGC.py" doc="Config path [default: src/groundingdino/config/GroundingDINO_SwinT_OGC.py]" />
+  <arg name="box_threshold" default="0.35" doc="Min confidence threshold for box." />
+  <arg name="text_threshold" default="0.25" doc="Min confidence threshold for text." />
+  
+
+  <!-- Run Contact-GraspNet -->
+  <node name="grounding_sam_ros" pkg="grounding_sam_ros" type="gsam_node.py" output="screen" >
+      <param name="model_path" type="str" value="$(arg model_path)" />
+      <param name="sam_checkpoint" type="str" value="$(arg sam_checkpoint)" />
+      <param name="config" type="str" value="$(arg config)" />
+      <param name="box_threshold" type="double" value="$(arg box_threshold)" />
+      <param name="text_threshold" type="double" value="$(arg text_threshold)" />
+  </node>
+</launch>
