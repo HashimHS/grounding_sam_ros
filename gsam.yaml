@@ -1,4 +1,4 @@
-name: dino
+name: gsam
 channels:
   - nvidia
   - defaults
