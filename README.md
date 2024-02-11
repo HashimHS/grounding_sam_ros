@@ -103,5 +103,5 @@ You have to do set this environment variable before launching the node:
     ```
 ## Contributors
 This ROS package is made possible by:
-- Hashim Ismail ([HashimHS]([https://github.com/your-profile](https://github.com/HashimHS)))
-- JLL ([Taokt]([https://github.com/contributor2](https://github.com/Taokt)))
+- Hashim Ismail ([HashimHS](https://github.com/HashimHS)).
+- JLL ([Taokt](https://github.com/Taokt)).
