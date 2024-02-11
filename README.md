@@ -8,6 +8,12 @@ Grounded Segment-Anything-Model (SAM) is a state-of-the-art model for detecting 
 ## Original Repository
 Check out the original repository of the model at [IDEA-Research/Grounded-Segment-Anything](https://github.com/IDEA-Research/Grounded-Segment-Anything).
 
+## Compatibility
+- Tested on ROS Noetic
+
+## Hardware Requirements
+- A GPU with a minimum of 8 GB VRAM for Grounded SAM or 4 GB for the Grounding Dino model alone.
+
 ## Installation
 To install and use this ROS service server, follow these steps:
 
@@ -28,7 +34,15 @@ To install and use this ROS service server, follow these steps:
     pip install git+https://github.com/facebookresearch/segment-anything.git
     ```
 
-3. Build the ROS workspace:
+3. Download the weights:
+    ```bash
+    mkdir weights
+    cd weights
+    wget -q https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+    wget -q https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
+    ```
+
+4. Build the ROS workspace:
     ```bash
     # Navigate to the root of your ROS workspace
     cd ~/catkin_ws
@@ -49,6 +63,7 @@ To use the Grounded SAM ROS service server, follow these steps:
     conda activate gsam
     roslaunch grounded_sam_ros dino.launch
     ```
+    You should now find a new service server with the name "vit_detection".
 
 2. Use the service for segmenting objects in images. An example of client code:
     ```bash
@@ -86,3 +101,7 @@ You have to do set this environment variable before launching the node:
     ```bash
     export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libffi.so.7
     ```
+## Contributors
+This ROS package is made possible by:
+- Hashim Ismail ([HashimHS]([https://github.com/your-profile](https://github.com/HashimHS)))
+- JLL ([Taokt]([https://github.com/contributor2](https://github.com/Taokt)))
