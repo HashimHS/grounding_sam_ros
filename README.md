@@ -97,7 +97,7 @@ In case you get an error:
     ERROR: /usr/lib/x86_64-linux-gnu/libp11-kit.so.0: undefined symbol: ffi_type_pointer, version LIBFFI_BASE_7.0
     ```
     
-You have to do set this environment variable before launching the node:
+You have to set `LD_PRELOAD` environment variable before launching the node:
     ```bash
     export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libffi.so.7
     ```
