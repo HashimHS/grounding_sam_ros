@@ -9,7 +9,7 @@ Grounded Segment-Anything-Model (SAM) is a state-of-the-art model for detecting 
 Check out the original repository of the model at [IDEA-Research/Grounded-Segment-Anything](https://github.com/IDEA-Research/Grounded-Segment-Anything).
 
 ## Compatibility
-- Tested on ROS Noetic
+- Tested on ROS Noetic, might work with other ROS distributions.
 
 ## Hardware Requirements
 - A GPU with a minimum of 8 GB VRAM for Grounded SAM or 4 GB for the Grounding Dino model alone.
