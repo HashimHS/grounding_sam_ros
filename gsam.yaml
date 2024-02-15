@@ -155,4 +155,3 @@ dependencies:
       - urllib3==2.2.0
       - yapf==0.40.2
       - zipp==3.17.0
-prefix: /home/graspnetthesis/miniconda3/envs/dino
