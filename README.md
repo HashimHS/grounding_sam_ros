@@ -38,8 +38,8 @@ To install and use this ROS service server, follow these steps:
     ```bash
     mkdir weights
     cd weights
-    wget -q https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-    wget -q https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
+    wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+    wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
     ```
 
 4. Build the ROS workspace:
