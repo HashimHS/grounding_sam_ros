@@ -9,9 +9,10 @@ from grounding_sam_ros.srv import VitDetection, VitDetectionResponse
 from cv_bridge import CvBridge
 from std_msgs.msg import MultiArrayDimension
 from groundingdino.util.inference import box_convert
+import os
 
 class VitDetectionServer(object):
-    def __init__(self, model_path, config, box_threshold=0.35, text_threshold=0.25):
+    def __init__(self, model_path, config, box_threshold=0.35, text_threshold=0.25, save=False, save_path="./annotated"):
         torch.cuda.empty_cache()
         if torch.cuda.is_available():    
             self.device = torch.device("cuda")
@@ -23,11 +24,17 @@ class VitDetectionServer(object):
         self.box_threshold = box_threshold
         self.text_threshold = text_threshold
         self.cv_bridge = CvBridge()
+        self.save_path = save_path
         rospy.loginfo("Model loaded")
 
         # ros service
         rospy.Service("vit_detection", VitDetection, self.callback)
         rospy.loginfo("Start vit_detection service")
+
+        self.i = 1
+        for files in os.listdir(save_path):
+            if files.endswith('.jpg'):
+                self.i += 1
 
     def detect(self, image, text):
         cv2.imwrite("image.jpg", image)
@@ -41,6 +48,15 @@ class VitDetectionServer(object):
             text_threshold=0.25
         )
         annotated_frame = annotate(image_source=image_source, boxes=boxes, logits=logits, phrases=phrases)
+        if save:
+            path = os.path.join(self.save_path, "annotated_frame_{}.jpg".format(self.i))
+            cv2.imwrite(path, annotated_frame)
+            path = os.path.join(self.save_path, "rgb_{}.jpg".format(self.i))
+            rgb = cv2.imread(image_path)
+            cv2.imwrite(path, rgb)
+            self.i += 1
+
+
         h, w, _ = image_source.shape
         boxes = boxes * torch.Tensor([w, h, w, h])
         xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
@@ -55,6 +71,7 @@ class VitDetectionServer(object):
         # Get prediction scores
         # scores = torch.sigmoid(logits.values).cpu().detach().numpy()
         scores = logits.cpu().detach().numpy()
+        print(scores)
 
 
         rospy.loginfo("Detected objects: {}".format(labels))
@@ -65,6 +82,7 @@ class VitDetectionServer(object):
         response.boxes.layout.dim = [MultiArrayDimension(label="boxes", size=boxes.shape[0], stride=4)]
         response.boxes.data = boxes.flatten().tolist()
         response.annotated_frame = self.cv_bridge.cv2_to_imgmsg(annotated_frame)
+        response.segmask = self.cv_bridge.cv2_to_imgmsg(annotated_frame)
 
         # We release the gpu memory
         torch.cuda.empty_cache()
@@ -79,7 +97,9 @@ if __name__ == '__main__':
     config = rospy.get_param('~config')
     box_threshold = rospy.get_param('~box_threshold')
     text_threshold = rospy.get_param('~text_threshold')
+    save = rospy.get_param('~save')
+    save_path = rospy.get_param('~save_path')
 
     # start the server
-    VitDetectionServer(model_path, config, box_threshold, text_threshold)
+    VitDetectionServer(model_path, config, box_threshold, text_threshold, save=False, save_path=save_path)
     rospy.spin()

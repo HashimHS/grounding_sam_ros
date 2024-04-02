@@ -6,6 +6,7 @@
   <arg name="config" default="$(find grounding_sam_ros)src/groundingdino/config/GroundingDINO_SwinT_OGC.py" doc="Config path [default: src/groundingdino/config/GroundingDINO_SwinT_OGC.py]" />
   <arg name="box_threshold" default="0.35" doc="Min confidence threshold for box." />
   <arg name="text_threshold" default="0.25" doc="Min confidence threshold for text." />
+  <arg name="save" default="False" doc="Save the output images." />
   
 
   <!-- Run Contact-GraspNet -->
@@ -15,5 +16,6 @@
       <param name="config" type="str" value="$(arg config)" />
       <param name="box_threshold" type="double" value="$(arg box_threshold)" />
       <param name="text_threshold" type="double" value="$(arg text_threshold)" />
+      <param name="save" type="bool" value="$(arg save)" />
   </node>
 </launch>

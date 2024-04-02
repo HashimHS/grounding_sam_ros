@@ -13,8 +13,10 @@ from std_msgs.msg import MultiArrayDimension
 from segment_anything import build_sam_vit_l, SamPredictor, sam_model_registry
 import numpy as np
 
+import os
+
 class VitDetectionServer(object):
-    def __init__(self, model_path, sam_checkpoint, config, box_threshold=0.35, text_threshold=0.25):
+    def __init__(self, model_path, sam_checkpoint, config, box_threshold=0.35, text_threshold=0.25, save=False):
         torch.cuda.empty_cache()
         if torch.cuda.is_available():    
             self.device = torch.device("cuda")
@@ -36,6 +38,12 @@ class VitDetectionServer(object):
         sam = build_sam_vit_l(checkpoint=sam_checkpoint).to(device=self.device)
         self.sam_predictor = SamPredictor(sam)
 
+        self.i = 1
+
+        for files in os.listdir('./annotated'):
+            if files.endswith('.jpg'):
+                self.i += 1
+
     def detect(self, image, text):
         cv2.imwrite("image.jpg", image)
         image_path = "image.jpg"
@@ -50,7 +58,11 @@ class VitDetectionServer(object):
             text_threshold=0.25
         )
         annotated_frame = annotate(image_source=image_source, boxes=boxes, logits=logits, phrases=phrases)
-
+        if save:
+            path = "./annotated/annotated_frame_{}.jpg".format(self.i)
+            cv2.imwrite(path, annotated_frame)
+            self.i += 1
+        
         # Segment Anything Model
         h, w, _ = image_source.shape
         self.sam_predictor.set_image(image_source)
@@ -79,6 +91,7 @@ class VitDetectionServer(object):
         # Get prediction scores
         # scores = torch.sigmoid(logits.values).cpu().detach().numpy()
         scores = logits.cpu().detach().numpy()
+        print(scores)
 
 
         rospy.loginfo("Detected objects: {}".format(labels))
@@ -90,6 +103,11 @@ class VitDetectionServer(object):
         response.boxes.data = boxes.flatten().tolist()
         response.annotated_frame = self.cv_bridge.cv2_to_imgmsg(annotated_frame)
         response.segmask = self.cv_bridge.cv2_to_imgmsg(mask)
+        # masks = [m[0].cpu().numpy() for m in masks]
+        # masks = [m > 0.5 for m in masks]
+        # response.segmasks = [self.cv_bridge.cv2_to_imgmsg(m) for m in masks]
+        response.segmasks = [self.cv_bridge.cv2_to_imgmsg(mask)]
+        
 
         # We release the gpu memory
         torch.cuda.empty_cache()
@@ -105,6 +123,7 @@ if __name__ == '__main__':
     config = rospy.get_param('~config')
     box_threshold = rospy.get_param('~box_threshold')
     text_threshold = rospy.get_param('~text_threshold')
+    save = rospy.get_param('~save')
 
     # start the server
     VitDetectionServer(model_path, sam_checkpoint, config, box_threshold, text_threshold)
