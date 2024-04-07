@@ -30,8 +30,8 @@ To install and use this ROS service server, follow these steps:
     # Install the conda environment
     conda env create -f gsam.yaml
     # Install the models
-    pip install git+https://github.com/IDEA-Research/GroundingDINO.git
-    pip install git+https://github.com/facebookresearch/segment-anything.git
+    python -m pip install git+https://github.com/IDEA-Research/GroundingDINO.git
+    python -m pip install git+https://github.com/facebookresearch/segment-anything.git
     ```
 
 3. Download the weights:
