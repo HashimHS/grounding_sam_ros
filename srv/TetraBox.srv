@@ -8,5 +8,4 @@ int32[] class_id
 std_msgs/Float32MultiArray boxes
 float32[] scores
 sensor_msgs/Image annotated_frame
-sensor_msgs/Image segmask
-sensor_msgs/Image[] segmasks
+std_msgs/Float32MultiArray segmasks
