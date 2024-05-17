@@ -12,7 +12,7 @@ Check out the original repository of the model at [IDEA-Research/Grounded-Segmen
 - Tested on ROS Noetic, might work with other ROS distributions.
 
 ## Hardware Requirements
-- A GPU with a minimum of 8 GB VRAM for Grounded SAM or 4 GB for the Grounding Dino model alone.
+- A GPU with a minimum of 8 GB VRAM for Grounded SAM or 4 GB for the Grounding DINO model alone.
 
 ## Installation
 To install and use this ROS service server, follow these steps:
@@ -27,10 +27,19 @@ To install and use this ROS service server, follow these steps:
     ```bash
     # Navigate to the cloned repository directory
     cd grounding_sam_ros
+    
     # Install the conda environment
     conda env create -f gsam.yaml
-    # Install the models
-    python -m pip install git+https://github.com/IDEA-Research/GroundingDINO.git
+    conda activate gsam
+    
+    # Install the Grounding DINO
+    git clone https://github.com/IDEA-Research/GroundingDINO.git
+    cd GroundingDINO/
+    pip install -e .
+    cd ..
+    rm -rf GroundingDINO/
+    
+    # Install SAM
     python -m pip install git+https://github.com/facebookresearch/segment-anything.git
     ```
 
@@ -58,7 +67,7 @@ To use the Grounded SAM ROS service server, follow these steps:
     conda activate gsam
     roslaunch grounded_sam_ros gsam.launch
     ```
-    Alternatively you can launch Dino only for detection without segmentation
+    Alternatively you can launch Grounding DINO only for detection without segmentation
     ```bash
     conda activate gsam
     roslaunch grounded_sam_ros dino.launch
@@ -76,7 +85,7 @@ To use the Grounded SAM ROS service server, follow these steps:
     rgb_msg = cv_bridge.cv2_to_imgmsg(np.array(rgb_image))
     results = vit_detection(rgb_msg, text_prompt)
 
-    # Annotated image from Grounding Dino
+    # Annotated image from Grounding DINO
     annotated_frame = results.annotated_frame
     
     # List of detected objects
