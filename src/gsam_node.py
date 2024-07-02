@@ -10,7 +10,7 @@ from cv_bridge import CvBridge
 from std_msgs.msg import MultiArrayDimension
 
 # SAM
-from segment_anything import build_sam_vit_l, SamPredictor, sam_model_registry
+from segment_anything import build_sam_vit_l, SamPredictor, sam_model_registry, SamAutomaticMaskGenerator, build_sam_vit_h
 import numpy as np
 
 import os
@@ -36,7 +36,9 @@ class VitDetectionServer(object):
 
         # 'sam_vit_h_4b8939.pth'
         sam = build_sam_vit_l(checkpoint=sam_checkpoint).to(device=self.device)
+        # sam = build_sam_vit_h(checkpoint=sam_checkpoint).to(device=self.device)
         self.sam_predictor = SamPredictor(sam)
+        self.mask_generator = SamAutomaticMaskGenerator(sam)
 
         self.i = 1
 
@@ -54,8 +56,8 @@ class VitDetectionServer(object):
             model=self.model, 
             image=image, 
             caption=text, 
-            box_threshold=0.35, 
-            text_threshold=0.25
+            box_threshold=self.box_threshold, 
+            text_threshold=self.text_threshold
         )
         annotated_frame = annotate(image_source=image_source, boxes=boxes, logits=logits, phrases=phrases)
         if save:
@@ -78,6 +80,10 @@ class VitDetectionServer(object):
             multimask_output = False,
         )
 
+        # x1, y1, x2, y2 = [round(i) for i in xyxy[0]]
+        # cropped_image = image_source[y1:y2,x1:x2]
+        # masks = self.mask_generator.generate(cropped_image)
+
         return annotated_frame, xyxy, logits, phrases, masks
         
 
@@ -85,8 +91,17 @@ class VitDetectionServer(object):
         img, prompt = request.color_image, request.prompt
         img = self.cv_bridge.imgmsg_to_cv2(img)
         annotated_frame, boxes, logits, labels, masks = self.detect(img, prompt)
+        # Grounding SAM Segmentation
         mask = masks[0][0].cpu().numpy()
         mask = (mask > 0.5).astype(np.uint8)
+
+        # Cropped Image Segmentations
+        # mask = np.zeros((img.shape[0], img.shape[1]))
+        # x1, y1, x2, y2 = [round(i) for i in boxes[0]]
+        # print('number of masks:', len(masks))
+        # mask = np.zeros_like(masks[0]['segmentation'], dtype=np.uint8)
+        # for i in range(len(masks)):
+        #     mask[masks[i]['segmentation'] == 1] = i + 1
 
         # Get prediction scores
         # scores = torch.sigmoid(logits.values).cpu().detach().numpy()

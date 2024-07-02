@@ -3,6 +3,7 @@
   <!-- Get arguments -->
   <arg name="model_path" default="$(find grounding_sam_ros)weights/groundingdino_swint_ogc.pth" doc="Detection Model Path [default: weights/groundingdino_swint_ogc.pth]" />
   <arg name="sam_checkpoint" default="$(find grounding_sam_ros)weights/sam_vit_l_0b3195.pth" doc="Segmentation Model Path [default: weights/sam_vit_l_0b3195.pth]" />
+  <!-- <arg name="sam_checkpoint" default="$(find grounding_sam_ros)weights/sam_vit_h_4b8939.pth" doc="Segmentation Model Path [default: weights/sam_vit_l_0b3195.pth]" /> -->
   <arg name="config" default="$(find grounding_sam_ros)src/groundingdino/config/GroundingDINO_SwinT_OGC.py" doc="Config path [default: src/groundingdino/config/GroundingDINO_SwinT_OGC.py]" />
   <arg name="box_threshold" default="0.35" doc="Min confidence threshold for box." />
   <arg name="text_threshold" default="0.25" doc="Min confidence threshold for text." />

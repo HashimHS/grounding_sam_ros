@@ -1,1 +1,2 @@
 /weights
+src/groundingdino/__pycache__/*.pyc
