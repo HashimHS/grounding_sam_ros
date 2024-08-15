@@ -64,12 +64,10 @@ To use the Grounded SAM ROS service server, follow these steps:
 
 1. Launch the ROS node:
     ```bash
-    conda activate gsam
     roslaunch grounded_sam_ros gsam.launch
     ```
     Alternatively you can launch Grounding DINO only for detection without segmentation
     ```bash
-    conda activate gsam
     roslaunch grounded_sam_ros dino.launch
     ```
     You should now find a new service server with the name "vit_detection".
@@ -98,10 +96,12 @@ To use the Grounded SAM ROS service server, follow these steps:
     scores = results.scores
 
     # Image Segmentation Mask
-    mask = results.segmask
+    masks = results.segmasks
     ```
 ## Troubleshooting:
-In case you get an error:
+- Make sure to provide the path to your conda / virtual python environment in the launch files by changing the argument "venv"
+
+- In case you get an error:
     ```bash
     ERROR: /usr/lib/x86_64-linux-gnu/libp11-kit.so.0: undefined symbol: ffi_type_pointer, version LIBFFI_BASE_7.0
     ```
