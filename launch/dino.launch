@@ -1,4 +1,7 @@
 <launch>
+  <!-- Get environment variables -->
+  <arg name="venv" default="~/miniconda3/envs/gsam/bin/python" />
+  <env name="LD_PRELOAD" value="/usr/lib/x86_64-linux-gnu/libffi.so.7" />
 
   <!-- Get arguments -->
   <arg name="model_path" default="$(find grounding_sam_ros)weights/groundingdino_swint_ogc.pth" doc="Detection Model Path [default: weights/groundingdino_swint_ogc.pth]" />
@@ -10,7 +13,7 @@
   
 
   <!-- Run Contact-GraspNet -->
-  <node name="grounding_sam_ros" pkg="grounding_sam_ros" type="dino_node.py" output="screen" >
+  <node name="grounding_sam_ros" pkg="grounding_sam_ros" type="dino.py" launch-prefix = "$(arg venv)" output="screen" >
       <param name="model_path" type="str" value="$(arg model_path)" />
       <param name="config" type="str" value="$(arg config)" />
       <param name="box_threshold" type="double" value="$(arg box_threshold)" />

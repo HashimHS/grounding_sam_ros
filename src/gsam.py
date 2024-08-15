@@ -1,11 +1,10 @@
-#! /usr/bin/env python
 import rospy
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 from groundingdino.util.inference import Model
 import cv2
 import torch
 
-from grounding_sam_ros.srv import TetraBox, TetraBoxResponse
+from grounding_sam_ros.srv import VitDetection, VitDetectionResponse
 from cv_bridge import CvBridge
 from std_msgs.msg import MultiArrayDimension
 
@@ -46,7 +45,7 @@ class VitDetectionServer(object):
         rospy.loginfo("Model loaded")
 
         # ros service
-        rospy.Service("vit_detection", TetraBox, self.callback)
+        rospy.Service("vit_detection", VitDetection, self.callback)
         rospy.loginfo("Start vit_detection service")
 
         # 'sam_vit_l_0b3195'
@@ -54,13 +53,27 @@ class VitDetectionServer(object):
 
         self.i = 1
 
-        for files in os.listdir('./annotated'):
-            if files.endswith('.jpg'):
-                self.i += 1
+        try:
+            # Check if the directory exists
+            if not os.path.exists('./annotated'):
+                raise FileNotFoundError("The directory 'annotated' does not exist.")
+
+            # List files in the directory if it exists
+            for files in os.listdir('./annotated'):
+                # Your code to handle each file
+                if files.endswith('.jpg'):
+                    self.i += 1
+                    # print(files)
+
+        except FileNotFoundError as e:
+            print(e)
 
     def detect(self, image, text):
 
-        CLASSES = ['box', 'label']
+        if text == "":
+            CLASSES = ['box', 'label']
+        else:
+            CLASSES = text.split(',')
 
         # GroundingDINO Model
         # detect objects
@@ -112,7 +125,7 @@ class VitDetectionServer(object):
         rospy.loginfo("Detected objects: {}".format(labels))
         rospy.loginfo("Detection scores: {}".format(scores))
         stride = masks.shape[1] * masks.shape[2]
-        response = TetraBoxResponse()
+        response = VitDetectionResponse()
         response.labels = labels
         response.class_id = detections.class_id
         response.scores = scores.tolist()

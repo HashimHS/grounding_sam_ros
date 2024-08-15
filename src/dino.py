@@ -1,9 +1,9 @@
-#! /usr/bin/env python
 import rospy
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 # from GroundingDINO.groundingdino.util.inference import Model
 import cv2
 import torch
+import numpy as np
 
 from grounding_sam_ros.srv import VitDetection, VitDetectionResponse
 from cv_bridge import CvBridge
@@ -31,10 +31,20 @@ class VitDetectionServer(object):
         rospy.Service("vit_detection", VitDetection, self.callback)
         rospy.loginfo("Start vit_detection service")
 
-        self.i = 1
-        for files in os.listdir(save_path):
-            if files.endswith('.jpg'):
-                self.i += 1
+        try:
+            # Check if the directory exists
+            if not os.path.exists('./annotated'):
+                raise FileNotFoundError("The directory 'annotated' does not exist.")
+
+            # List files in the directory if it exists
+            for files in os.listdir('./annotated'):
+                # Your code to handle each file
+                if files.endswith('.jpg'):
+                    self.i += 1
+                    # print(files)
+
+        except FileNotFoundError as e:
+            print(e)
 
     def detect(self, image, text):
         cv2.imwrite("image.jpg", image)
@@ -60,13 +70,20 @@ class VitDetectionServer(object):
         h, w, _ = image_source.shape
         boxes = boxes * torch.Tensor([w, h, w, h])
         xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
-        return annotated_frame, xyxy, logits, phrases
+
+        masks = np.zeros((len(boxes), image_source.shape[0], image_source.shape[1]), dtype=np.uint8)
+        for i, box in enumerate(boxes):
+            x1, y1, x2, y2 = box
+            masks[i, int(y1):int(y2), int(x1):int(x2)] = 255
+
+        return annotated_frame, xyxy, logits, phrases, masks
         
 
     def callback(self, request):
         img, prompt = request.color_image, request.prompt
         img = self.cv_bridge.imgmsg_to_cv2(img)
-        annotated_frame, boxes, logits, labels = self.detect(img, prompt)
+        annotated_frame, boxes, logits, labels, masks = self.detect(img, prompt)
+
         
         # Get prediction scores
         # scores = torch.sigmoid(logits.values).cpu().detach().numpy()
@@ -82,7 +99,8 @@ class VitDetectionServer(object):
         response.boxes.layout.dim = [MultiArrayDimension(label="boxes", size=boxes.shape[0], stride=4)]
         response.boxes.data = boxes.flatten().tolist()
         response.annotated_frame = self.cv_bridge.cv2_to_imgmsg(annotated_frame)
-        response.segmask = self.cv_bridge.cv2_to_imgmsg(annotated_frame)
+        response.segmasks.layout.dim = [MultiArrayDimension(label="masks", size=masks.shape[0], stride=masks.shape[1] * masks.shape[2])]
+        response.segmasks.data = masks.flatten().tolist()
 
         # We release the gpu memory
         torch.cuda.empty_cache()
