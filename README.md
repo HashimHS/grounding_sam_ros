@@ -74,7 +74,9 @@ To use the Grounded SAM ROS service server, follow these steps:
 
 2. Use the service for segmenting objects in images. An example of client code:
     ```bash
+    from grounding_sam_ros.srv import VitDetection, VitDetectionResponse
     from cv_bridge import CvBridge
+    import rospy
     import cv2
 
     text_prompt ='OBJECT YOU WANT TO DETECT'
