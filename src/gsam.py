@@ -70,20 +70,24 @@ class VitDetectionServer(object):
 
     def detect(self, image, text):
 
-        if text == "":
-            CLASSES = ['box', 'label']
-        else:
-            CLASSES = text.split(',')
+        # labels = text.split(',')
 
         # GroundingDINO Model
         # detect objects
         # image_source, image = load_image(image_path)
-        detections = self.grounding_dino_model.predict_with_classes(
-            image=image,
-            classes=CLASSES,
-            box_threshold=self.box_threshold,
-            text_threshold=self.text_threshold
-        )
+        # detections = self.grounding_dino_model.predict_with_classes(
+        #     image=image,
+        #     classes=labels,
+        #     box_threshold=self.box_threshold,
+        #     text_threshold=self.text_threshold
+        # )
+
+        detections, labels = self.grounding_dino_model.predict_with_caption(
+                    image=image,
+                    caption=text,
+                    box_threshold=self.box_threshold,
+                    text_threshold=self.text_threshold
+                )
 
         # Segment Anything Model
         # convert detections to masks
@@ -97,7 +101,7 @@ class VitDetectionServer(object):
         box_annotator = sv.BoxAnnotator()
         mask_annotator = sv.MaskAnnotator()
         labels = [
-            f"{CLASSES[class_id]}:{confidence:0.2f}" 
+            f"{labels[class_id]}:{confidence:0.2f}" 
             for _, _, confidence, class_id, _, _ 
             in detections]
         annotated_image = mask_annotator.annotate(scene=image.copy(), detections=detections)
@@ -118,9 +122,6 @@ class VitDetectionServer(object):
         boxes = detections.xyxy
         scores = detections.confidence
         masks = detections.mask
-        # masks = [mask.astype(np.uint8) for mask in masks]
-        # Convert masks to int8MultiArray
-
 
         rospy.loginfo("Detected objects: {}".format(labels))
         rospy.loginfo("Detection scores: {}".format(scores))
@@ -132,7 +133,6 @@ class VitDetectionServer(object):
         response.boxes.layout.dim = [MultiArrayDimension(label="boxes", size=boxes.shape[0], stride=4)]
         response.boxes.data = boxes.flatten().tolist()
         response.annotated_frame = self.cv_bridge.cv2_to_imgmsg(annotated_frame)
-        # response.segmasks = [self.cv_bridge.cv2_to_imgmsg(mask) for mask in masks]
         response.segmasks.layout.dim = [MultiArrayDimension(label="masks", size=masks.shape[0], stride=stride)]
         response.segmasks.data = masks.flatten().tolist()
 
