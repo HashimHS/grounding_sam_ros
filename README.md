@@ -56,11 +56,11 @@ To use the Grounded SAM ROS service server, follow these steps:
 
 1. Launch the ROS node:
     ```bash
-    roslaunch grounded_sam_ros gsam.launch
+    roslaunch grounded_sam_ros gsam.launch sam_model:="SAM-L" venv:="path/to/python/env"
     ```
     Alternatively you can launch Grounding DINO only for detection without segmentation
     ```bash
-    roslaunch grounded_sam_ros dino.launch
+    roslaunch grounded_sam_ros dino.launch venv:="path/to/python/env"
     ```
     You should now find a new service server with the name "vit_detection".
 
