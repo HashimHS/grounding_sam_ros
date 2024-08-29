@@ -42,6 +42,8 @@ class VitDetectionServer(object):
         # Building GroundingDINO inference model
         if not os.path.exists(model_path):
             rospy.loginfo("Downloading DINO model...")
+            if not os.path.exists("weights"):
+                os.makedirs("weights")
             os.system("wget {} -O {}".format(LINKS["DINO"], model_path))
         self.grounding_dino_model = Model(model_config_path=config, model_checkpoint_path=model_path)
         self.box_threshold = box_threshold
@@ -50,6 +52,8 @@ class VitDetectionServer(object):
         # Building SAM inference model
         if not os.path.exists(sam_checkpoint):
             rospy.loginfo("Downloading SAM model...")
+            if not os.path.exists("weights"):
+                os.makedirs("weights")
             os.system("wget {} -O {}".format(LINKS[sam_model], sam_checkpoint))
         self.sam_predictor = SamPredictor(sam_model_registry[MODELS[sam_model]](checkpoint=sam_checkpoint).to(self.device))
 
@@ -78,14 +82,6 @@ class VitDetectionServer(object):
 
         # GroundingDINO Model
         # detect objects
-        # image_source, image = load_image(image_path)
-        # detections = self.grounding_dino_model.predict_with_classes(
-        #     image=image,
-        #     classes=labels,
-        #     box_threshold=self.box_threshold,
-        #     text_threshold=self.text_threshold
-        # )
-
         detections, labels = self.grounding_dino_model.predict_with_caption(
                     image=image,
                     caption=text,
@@ -101,14 +97,18 @@ class VitDetectionServer(object):
         )
 
         # annotate image with detections
+        # mask_annotator = sv.MaskAnnotator()
         box_annotator = sv.BoxAnnotator()
-        mask_annotator = sv.MaskAnnotator()
-        labels = [
+        label_annotator = sv.LabelAnnotator()
+
+        result = [
             f"{labels[class_id]}:{confidence:0.2f}" 
             for _, _, confidence, class_id, _, _ 
             in detections]
-        annotated_image = mask_annotator.annotate(scene=image.copy(), detections=detections)
-        annotated_image = box_annotator.annotate(scene=annotated_image, detections=detections, labels=labels)
+        
+        # annotated_image = mask_annotator.annotate(scene=image.copy(), detections=detections)
+        annotated_image = box_annotator.annotate(scene=image.copy(), detections=detections)
+        annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections, labels=labels)
 
         return detections, labels, annotated_image
 

@@ -25,6 +25,8 @@ class VitDetectionServer(object):
         rospy.loginfo("Loading model...")
         if not os.path.exists(model_path):
             rospy.loginfo("Downloading DINO model...")
+            if not os.path.exists("weights"):
+                os.makedirs("weights")
             os.system("wget {} -O {}".format(LINKS["DINO"], model_path))
         self.model = load_model(config, model_path)
         self.box_threshold = box_threshold

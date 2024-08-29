@@ -46,6 +46,8 @@ class VitDetectionServer(object):
 
         if not os.path.exists(sam_checkpoint):
             rospy.loginfo("Downloading SAM model...")
+            if not os.path.exists("weights"):
+                os.makedirs("weights")
             os.system("wget {} -O {}".format(LINKS[sam_model], sam_checkpoint))       
         # self.sam_predictor = SamPredictor(sam_model_registry[MODELS[sam_model]](checkpoint=sam_checkpoint).to(self.device))
         self.mask_generator = SamAutomaticMaskGenerator(sam_model_registry[MODELS[sam_model]](checkpoint=sam_checkpoint).to(self.device))

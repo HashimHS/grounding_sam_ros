@@ -5,7 +5,7 @@
 
   <!-- Get arguments -->
   <arg name="model_path" default="$(find grounding_sam_ros)/weights/groundingdino_swint_ogc.pth" doc="Detection Model Path [default: weights/groundingdino_swint_ogc.pth]" />
-  <arg name="config" default="$(find grounding_sam_ros)/src/groundingdino/config/GroundingDINO_SwinT_OGC.py" doc="Config path [default: src/groundingdino/config/GroundingDINO_SwinT_OGC.py]" />
+  <arg name="config" default="$(find grounding_sam_ros)/config/GroundingDINO_SwinT_OGC.py" doc="Config path [default: src/groundingdino/config/GroundingDINO_SwinT_OGC.py]" />
   <arg name="sam_model" default="SAM-L" doc="Can be either SAM-B, SAM-L or SAM-H."/>
   <arg name="box_threshold" default="0.3" doc="Min confidence threshold for box." />
   <arg name="text_threshold" default="0.25" doc="Min confidence threshold for text." />

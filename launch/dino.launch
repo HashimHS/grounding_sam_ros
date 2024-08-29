@@ -4,8 +4,8 @@
   <env name="LD_PRELOAD" value="/usr/lib/x86_64-linux-gnu/libffi.so.7" />
 
   <!-- Get arguments -->
-  <arg name="model_path" default="$(find grounding_sam_ros)weights/groundingdino_swint_ogc.pth" doc="Detection Model Path [default: weights/groundingdino_swint_ogc.pth]" />
-  <arg name="config" default="$(find grounding_sam_ros)src/groundingdino/config/GroundingDINO_SwinT_OGC.py" doc="Config path [default: src/groundingdino/config/GroundingDINO_SwinT_OGC.py]" />
+  <arg name="model_path" default="$(find grounding_sam_ros)/weights/groundingdino_swint_ogc.pth" doc="Detection Model Path [default: weights/groundingdino_swint_ogc.pth]" />
+  <arg name="config" default="$(find grounding_sam_ros)/config/GroundingDINO_SwinT_OGC.py" doc="Config path [default: src/groundingdino/config/GroundingDINO_SwinT_OGC.py]" />
   <arg name="box_threshold" default="0.35" doc="Min confidence threshold for box." />
   <arg name="text_threshold" default="0.25" doc="Min confidence threshold for text." />
 
