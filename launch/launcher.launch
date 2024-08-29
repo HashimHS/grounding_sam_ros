@@ -1,38 +1,13 @@
 <launch>
-    <arg name="venv" default="~/miniconda3/envs/gsam/bin/python" />
-    <arg name="sam_type" default="gsam" doc="Can be either gsam, dino, sam or false."/>
-    <arg name="box_threshold" default="0.35" doc="Min confidence threshold for box." />
-    <arg name="text_threshold" default="0.25" doc="Min confidence threshold for text." />
-    <arg name="save" default="False" doc="Save the output images."/>
+    <arg name="sam_type" default="gsam" doc="Can be either gsam, dino or sam."/>
+    <arg name="venv" default="~/miniconda3/envs/gsam/bin/python"/>
+    <arg name="box_threshold" default="0.35" doc="Min confidence threshold for box."/>
+    <arg name="text_threshold" default="0.25" doc="Min confidence threshold for text."/>
 
-    <!-- Grounding SAM if -->
-    <group if="$(eval sam_type=='gsam')">
-        <include file="$(find grounding_sam_ros)/launch/gsam.launch">
-            <arg name="venv" value="$(arg venv)" />
-            <arg name="box_threshold" value="$(arg box_threshold)"/>
-            <arg name="text_threshold" value="$(arg text_threshold)"/>
-            <arg name="save" value="$(arg save)"/>
-        </include>
-    </group>
-
-    <!-- Grounding DINO if -->
-    <group if="$(eval sam_type=='dino')">
-        <include file="$(find grounding_sam_ros)/launch/dino.launch">
-            <arg name="venv" value="$(arg venv)" />
-            <arg name="box_threshold" value="$(arg box_threshold)"/>
-            <arg name="text_threshold" value="$(arg text_threshold)"/>
-            <arg name="save" value="$(arg save)"/>
-        </include>
-    </group>
-
-    <!-- SAM -->
-    <group if="$(eval sam_type=='sam')">
-        <include file="$(find grounding_sam_ros)/launch/sam.launch">
-            <arg name="venv" value="$(arg venv)" />
-            <arg name="box_threshold" value="$(arg box_threshold)"/>
-            <arg name="text_threshold" value="$(arg text_threshold)"/>
-            <arg name="save" value="$(arg save)"/>
-        </include>
-    </group>
+    <include file="$(find grounding_sam_ros)/launch/$(arg sam_type).launch">
+        <arg name="venv" value="$(arg venv)" />
+        <arg name="box_threshold" value="$(arg box_threshold)"/>
+        <arg name="text_threshold" value="$(arg text_threshold)"/>
+    </include>
 
 </launch>

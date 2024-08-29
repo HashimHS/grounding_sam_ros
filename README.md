@@ -43,15 +43,7 @@ To install and use this ROS service server, follow these steps:
     python -m pip install git+https://github.com/facebookresearch/segment-anything.git
     ```
 
-3. Download the weights:
-    ```bash
-    mkdir weights
-    cd weights
-    wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-    wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
-    ```
-
-4. Build the ROS workspace:
+3. Build the ROS workspace:
     ```bash
     # Navigate to the root of your ROS workspace
     cd ~/catkin_ws
@@ -74,32 +66,15 @@ To use the Grounded SAM ROS service server, follow these steps:
 
 2. Use the service for segmenting objects in images. An example of client code:
     ```bash
-    from grounding_sam_ros.srv import VitDetection, VitDetectionResponse
-    from cv_bridge import CvBridge
-    import rospy
-    import cv2
+    from grounding_sam_ros.client import SamDetector
 
-    text_prompt ='OBJECT YOU WANT TO DETECT'
-    vit_detection = rospy.ServiceProxy('vit_detection', VitDetection)
-    cv_bridge = CvBridge()
-    rgb_msg = cv_bridge.cv2_to_imgmsg(np.array(rgb_image))
-    results = vit_detection(rgb_msg, text_prompt)
-
-    # Annotated image from Grounding DINO
-    annotated_frame = results.annotated_frame
-    
-    # List of detected objects
-    labels = results.labels
-
-    # Bounding boxes in y1 x1 y2 x2 format
-    boxes = results.boxes
-
-    # Detection score
-    scores = results.scores
-
-    # Image Segmentation Mask
-    masks = results.segmasks
+    text_prompt ='DESCRIBE THE OBJECT YOU WANT TO DETECT'
+    detector = SamDetector()
+    annotated_frame, boxes, masks, labels, scores = detector.detect(rgb_image, text_prompt)
     ```
+
+The model will automatically downloaded the needed model weights.
+
 ## Troubleshooting:
 - Make sure to provide the path to your conda / virtual python environment in the launch files by changing the argument "venv"
 

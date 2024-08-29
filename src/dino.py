@@ -1,6 +1,6 @@
 import rospy
 from groundingdino.util.inference import load_model, load_image, predict, annotate
-# from GroundingDINO.groundingdino.util.inference import Model
+from groundingdino.util.inference import Model
 import cv2
 import torch
 import numpy as np
@@ -11,40 +11,30 @@ from std_msgs.msg import MultiArrayDimension
 from groundingdino.util.inference import box_convert
 import os
 
+LINKS = {"DINO": "https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth"}
+
 class VitDetectionServer(object):
-    def __init__(self, model_path, config, box_threshold=0.35, text_threshold=0.25, save=False, save_path="./annotated"):
+    def __init__(self, model_path, config, box_threshold=0.35, text_threshold=0.25):
         torch.cuda.empty_cache()
         if torch.cuda.is_available():    
             self.device = torch.device("cuda")
         else:
-            print("No GPU available")
-            exit()
+            print("No GPU available - using CPU")
+            self.device = torch.device("cpu") 
+
         rospy.loginfo("Loading model...")
+        if not os.path.exists(model_path):
+            rospy.loginfo("Downloading DINO model...")
+            os.system("wget {} -O {}".format(LINKS["DINO"], model_path))
         self.model = load_model(config, model_path)
         self.box_threshold = box_threshold
         self.text_threshold = text_threshold
-        self.cv_bridge = CvBridge()
-        self.save_path = save_path
         rospy.loginfo("Model loaded")
 
         # ros service
+        self.cv_bridge = CvBridge()
         rospy.Service("vit_detection", VitDetection, self.callback)
-        rospy.loginfo("Start vit_detection service")
-
-        try:
-            # Check if the directory exists
-            if not os.path.exists('./annotated'):
-                raise FileNotFoundError("The directory 'annotated' does not exist.")
-
-            # List files in the directory if it exists
-            for files in os.listdir('./annotated'):
-                # Your code to handle each file
-                if files.endswith('.jpg'):
-                    self.i += 1
-                    # print(files)
-
-        except FileNotFoundError as e:
-            print(e)
+        rospy.loginfo("vit_detection service has started")
 
     def detect(self, image, text):
         cv2.imwrite("image.jpg", image)
@@ -58,14 +48,6 @@ class VitDetectionServer(object):
             text_threshold=0.25
         )
         annotated_frame = annotate(image_source=image_source, boxes=boxes, logits=logits, phrases=phrases)
-        if save:
-            path = os.path.join(self.save_path, "annotated_frame_{}.jpg".format(self.i))
-            cv2.imwrite(path, annotated_frame)
-            path = os.path.join(self.save_path, "rgb_{}.jpg".format(self.i))
-            rgb = cv2.imread(image_path)
-            cv2.imwrite(path, rgb)
-            self.i += 1
-
 
         h, w, _ = image_source.shape
         boxes = boxes * torch.Tensor([w, h, w, h])
@@ -83,13 +65,7 @@ class VitDetectionServer(object):
         img, prompt = request.color_image, request.prompt
         img = self.cv_bridge.imgmsg_to_cv2(img)
         annotated_frame, boxes, logits, labels, masks = self.detect(img, prompt)
-
-        
-        # Get prediction scores
-        # scores = torch.sigmoid(logits.values).cpu().detach().numpy()
         scores = logits.cpu().detach().numpy()
-        print(scores)
-
 
         rospy.loginfo("Detected objects: {}".format(labels))
 
@@ -115,9 +91,7 @@ if __name__ == '__main__':
     config = rospy.get_param('~config')
     box_threshold = rospy.get_param('~box_threshold')
     text_threshold = rospy.get_param('~text_threshold')
-    save = rospy.get_param('~save')
-    save_path = rospy.get_param('~save_path')
 
     # start the server
-    VitDetectionServer(model_path, config, box_threshold, text_threshold, save=False, save_path=save_path)
+    VitDetectionServer(model_path, config, box_threshold, text_threshold)
     rospy.spin()

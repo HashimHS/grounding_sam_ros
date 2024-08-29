@@ -1,9 +1,23 @@
 import rospy
 from cv_bridge import CvBridge
+from grounding_sam_ros.srv import VitDetection, VitDetectionResponse
+import cv2
 import numpy as np
-from grounding_sam_ros.srv import VitDetection
 
 class SamDetector():
+    """ 
+    Client for the vit_detection service
+    Args:
+        - rgb: RGB image in cv2 format
+        - text: Description of the object to be detected
+
+    Returns:
+        - annotated_frame: Annotated image from Grounding DINO
+        - boxes: Bounding boxes in y1 x1 y2 x2 format
+        - masks: Segmentation masks
+        - labels: List of detected objects
+        - scores: Confidence scores of the detected objects
+    """
     def __init__(self):
         self.cv_bridge = CvBridge()
         rospy.loginfo("Checking the vit_detection service")

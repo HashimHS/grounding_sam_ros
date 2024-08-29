@@ -9,57 +9,53 @@ from cv_bridge import CvBridge
 from std_msgs.msg import MultiArrayDimension
 
 # SAM
-from segment_anything import build_sam_vit_l, SamPredictor, sam_model_registry, SamAutomaticMaskGenerator, build_sam_vit_h
+from segment_anything import build_sam_vit_l, SamPredictor, sam_model_registry, SamAutomaticMaskGenerator, build_sam_vit_h, build_sam_vit_b
 import numpy as np
 
 import os
 
+LINKS = {
+    "SAM-H": "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth",
+    "SAM-L": "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth",
+    "SAM-B": "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth",
+    "DINO": "https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth",
+}
+MODELS = {
+    "SAM-H": "vit_h",
+    "SAM-L": "vit_l",
+    "SAM-B": "vit_b",
+}
+
 class VitDetectionServer(object):
-    def __init__(self, model_path, sam_checkpoint, config, box_threshold=0.35, text_threshold=0.25, save=False):
+    def __init__(self, model_path, config, sam_checkpoint, sam_model, box_threshold=0.35, text_threshold=0.25):
         torch.cuda.empty_cache()
         if torch.cuda.is_available():    
             self.device = torch.device("cuda")
         else:
-            self.device = torch.device("cpu") 
-            #print("No GPU available")
-            #exit()
+            # self.device = torch.device("cpu") 
+            print("No GPU available")
+            exit()
+
         rospy.loginfo("Loading model...")
+        if not os.path.exists(model_path):
+            rospy.loginfo("Downloading DINO model...")
+            os.system("wget {} -O {}".format(LINKS["DINO"], model_path))
         self.model = load_model(config, model_path)
         self.box_threshold = box_threshold
         self.text_threshold = text_threshold
-        self.cv_bridge = CvBridge()
+
+        if not os.path.exists(sam_checkpoint):
+            rospy.loginfo("Downloading SAM model...")
+            os.system("wget {} -O {}".format(LINKS[sam_model], sam_checkpoint))       
+        # self.sam_predictor = SamPredictor(sam_model_registry[MODELS[sam_model]](checkpoint=sam_checkpoint).to(self.device))
+        self.mask_generator = SamAutomaticMaskGenerator(sam_model_registry[MODELS[sam_model]](checkpoint=sam_checkpoint).to(self.device))
+
         rospy.loginfo("Model loaded")
 
         # ros service
+        self.cv_bridge = CvBridge()
         rospy.Service("vit_detection", VitDetection, self.callback)
         rospy.loginfo("Start vit_detection service")
-
-        # 'sam_vit_h_4b8939.pth'
-        sam = build_sam_vit_l(checkpoint=sam_checkpoint).to(device=self.device)
-        #sam = build_sam_vit_h(checkpoint=sam_checkpoint).to(device=self.device)
-        self.sam_predictor = SamPredictor(sam)
-        self.mask_generator = SamAutomaticMaskGenerator(sam)
-
-        self.i = 1
-
-        # for files in os.listdir('./annotated'):
-        #     if files.endswith('.jpg'):
-        #         self.i += 1
-        try:
-            # Check if the directory exists
-            if not os.path.exists('./annotated'):
-                raise FileNotFoundError("The directory 'annotated' does not exist.")
-
-            # List files in the directory if it exists
-            for files in os.listdir('./annotated'):
-                # Your code to handle each file
-                if files.endswith('.jpg'):
-                    self.i += 1
-                    # print(files)
-
-        except FileNotFoundError as e:
-            print(e)
-
 
     def crop(self, image, box):
         ''' 
@@ -114,21 +110,17 @@ class VitDetectionServer(object):
             text_threshold=self.text_threshold
         )
         annotated_frame = annotate(image_source=image_source, boxes=boxes, logits=logits, phrases=phrases)
-        if save:
-            path = "./annotated/annotated_frame_{}.jpg".format(self.i)
-            cv2.imwrite(path, annotated_frame)
-            self.i += 1
         
         # Segment Anything Model
 
         # Box prompted segment
         h, w, _ = image_source.shape
-        self.sam_predictor.set_image(image_source)
         boxes_xyxy = box_ops.box_cxcywh_to_xyxy(boxes) * torch.Tensor([w, h, w, h])
         boxes = boxes * torch.Tensor([w, h, w, h])
         xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
 
         # transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(boxes_xyxy, image_source.shape[:2]).to(self.device)
+        # self.sam_predictor.set_image(image_source)
         # masks, _, _ = self.sam_predictor.predict_torch(
         #     point_coords = None,
         #     point_labels = None,
@@ -176,12 +168,12 @@ if __name__ == '__main__':
 
     # get arguments from the ros parameter server
     model_path = rospy.get_param('~model_path')
-    sam_checkpoint = rospy.get_param('~sam_checkpoint')
     config = rospy.get_param('~config')
+    sam_checkpoint = rospy.get_param('~sam_checkpoint')
+    sam_model = rospy.get_param('~sam_model')
     box_threshold = rospy.get_param('~box_threshold')
     text_threshold = rospy.get_param('~text_threshold')
-    save = rospy.get_param('~save')
 
     # start the server
-    VitDetectionServer(model_path, sam_checkpoint, config, box_threshold, text_threshold)
+    VitDetectionServer(model_path, config, sam_checkpoint, sam_model, box_threshold, text_threshold)
     rospy.spin()
