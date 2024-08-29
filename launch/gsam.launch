@@ -1,6 +1,6 @@
 <launch>
   <!-- Get environment variables -->
-  <arg name="venv" default="~/miniconda3/envs/gsam/bin/python" />
+  <arg name="venv" default="/home/user/miniconda3/envs/gsam/bin/python" />
   <env name="LD_PRELOAD" value="/usr/lib/x86_64-linux-gnu/libffi.so.7" />
 
   <!-- Get arguments -->
