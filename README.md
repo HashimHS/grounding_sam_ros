@@ -77,7 +77,7 @@ The model will automatically downloaded the needed model weights.
 
 ## Troubleshooting:
 - Make sure to provide the path to your conda / virtual python environment in the launch files by changing the argument "venv"
-
+- for example venv:="/home/username/miniconda3/envs/gsam/bin/python"
 - In case you get an error:
     ```bash
     ERROR: /usr/lib/x86_64-linux-gnu/libp11-kit.so.0: undefined symbol: ffi_type_pointer, version LIBFFI_BASE_7.0
